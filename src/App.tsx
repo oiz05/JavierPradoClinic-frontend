@@ -1,5 +1,6 @@
-import LoginPage from "./authentication/pages/LoginPage"
+//import LoginPage from "./authentication/pages/LoginPage"
+import RegisterPage from "./authenticationContext/pages/RegisterPage"
 
 export default function App() {
-    return (<LoginPage />)
+    return (<RegisterPage />)
 }
