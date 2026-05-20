@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface FieldState {
     value: string;
@@ -19,10 +20,10 @@ interface FormState {
 const INITIAL_STATE: FormState = {
     nombres: { value: '', touched: false },
     apellidos: { value: '', touched: false },
-    dni: { value: '45678912', touched: true },
+    dni: { value: '', touched: true },
     telefono: { value: '', touched: false },
     email: { value: '', touched: false },
-    contrasena: { value: '123', touched: true },
+    contrasena: { value: '', touched: true },
     confirmarContrasena: { value: '', touched: false },
 };
 
@@ -122,10 +123,10 @@ export default function RegisterForm() {
                                 onChange={(e) => handleChange('dni', e.target.value)}
                                 onBlur={() => handleBlur('dni')}
                                 className={`${baseInputClass} pr-10 ${dniValid
-                                        ? 'border-[#006e25] focus:ring-[#006e25] focus:border-[#006e25]'
-                                        : dniError
-                                            ? 'border-[#ba1a1a] focus:ring-[#ba1a1a] focus:border-[#ba1a1a]'
-                                            : 'border-[#727784]'
+                                    ? 'border-[#006e25] focus:ring-[#006e25] focus:border-[#006e25]'
+                                    : dniError
+                                        ? 'border-[#ba1a1a] focus:ring-[#ba1a1a] focus:border-[#ba1a1a]'
+                                        : 'border-[#727784]'
                                     }`}
                                 style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
                             />
@@ -189,8 +190,8 @@ export default function RegisterForm() {
                                 onChange={(e) => handleChange('contrasena', e.target.value)}
                                 onBlur={() => handleBlur('contrasena')}
                                 className={`${baseInputClass} pr-10 ${passwordError
-                                        ? 'border-[#ba1a1a] bg-[#ffdad6]/10 focus:ring-[#ba1a1a] focus:border-[#ba1a1a]'
-                                        : 'border-[#727784]'
+                                    ? 'border-[#ba1a1a] bg-[#ffdad6]/10 focus:ring-[#ba1a1a] focus:border-[#ba1a1a]'
+                                    : 'border-[#727784]'
                                     }`}
                                 style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
                             />
@@ -248,7 +249,9 @@ export default function RegisterForm() {
                             type="button"
                             className="font-extrabold text-[#424752] underline underline-offset-4 hover:text-[#191c1d] transition-colors"
                         >
-                            Inicia sesión aquí
+                            <Link to="/auth/login">
+                                Inicia sesión aquí
+                            </Link>
                         </button>
                     </p>
                 </footer>

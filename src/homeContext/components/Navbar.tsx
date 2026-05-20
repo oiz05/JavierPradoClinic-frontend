@@ -1,5 +1,6 @@
 import { Shield } from "lucide-react";
 import { Button } from "../../ui/button";
+import { Link } from "react-router";
 
 const navigationItems = [
   { label: "Inicio", active: true },
@@ -45,9 +46,11 @@ export function Navbar() {
             variant="ghost"
             className="h-auto rounded-lg px-4 py-2 text-[#003f87] hover:bg-[#003f87]/5 hover:text-[#003f87]"
           >
-            <span className="text-xs font-normal leading-4 tracking-[0.60px]" style={{ fontFamily: "'Inter', Helvetica" }}>
-              Iniciar sesión
-            </span>
+            <Link to="/auth/login">
+              <span className="text-xs font-normal leading-4 tracking-[0.60px]" style={{ fontFamily: "'Inter', Helvetica" }}>
+                Iniciar sesión
+              </span>
+            </Link>
           </Button>
           <Button
             type="button"

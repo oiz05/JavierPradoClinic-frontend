@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LogIn } from 'lucide-react';
+import { Link } from "react-router";
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
@@ -150,7 +151,9 @@ export default function LoginForm() {
                         className="text-base font-extrabold text-[#424752] underline underline-offset-2 hover:text-[#003f87] transition-colors"
                         style={{ fontFamily: "'Inter', Helvetica, sans-serif" }}
                     >
-                        Presione aquí
+                        <Link to="/auth/register">
+                            Presione aquí
+                        </Link>
                     </button>
                 </p>
             </div>

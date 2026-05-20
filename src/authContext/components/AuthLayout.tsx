@@ -1,4 +1,5 @@
 import { ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -18,13 +19,15 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#003f87e6] to-transparent" />
                 <div className="relative z-10 flex w-full items-start p-6 xl:p-10">
                     <div className="flex items-center gap-2.5">
-                        <ShieldCheck className="h-8 w-8 text-white shrink-0" />
-                        <span
-                            className="text-white text-2xl font-semibold leading-8 tracking-[-0.6px]"
-                            style={{ fontFamily: "'Manrope', Helvetica, sans-serif" }}
-                        >
-                            Clínica Javier Prado
-                        </span>
+                        <Link to="/" className="flex items-center gap-2">
+                            <ShieldCheck className="h-8 w-8 text-white shrink-0" />
+                            <span
+                                className="text-white text-2xl font-semibold leading-8 tracking-[-0.6px]"
+                                style={{ fontFamily: "'Manrope', Helvetica, sans-serif" }}
+                            >
+                                Clínica Javier Prado
+                            </span>
+                        </Link>
                     </div>
                 </div>
             </aside>

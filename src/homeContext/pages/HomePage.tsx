@@ -84,6 +84,9 @@ export function HomePage() {
                     </p>
                 </div>
                 <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+                    {/**
+                     * I RENDER EACH ONE OF THE FEATURE CARDS
+                     */}
                     {featureCards.map((card, index) => (
                         <FeatureCard
                             key={`feature-card-${index}`}
