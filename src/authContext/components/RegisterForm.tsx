@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
-
+import axios from '../../shared/apiClient';
+import { z } from 'zod';
+import type { RegisterRequestDTO } from '../types/dtos';
 interface FieldState {
     value: string;
     touched: boolean;
@@ -27,19 +29,25 @@ const INITIAL_STATE: FormState = {
     confirmarContrasena: { value: '', touched: false },
 };
 
-function isDniValid(value: string): boolean {
-    return /^\d{8}$/.test(value.trim());
-}
-
-function isPasswordValid(value: string): boolean {
-    return value.length >= 8;
-}
+const registerSchema = z.object({
+    nombres: z.string().min(1, 'Nombres requeridos'),
+    apellidos: z.string().min(1, 'Apellidos requeridos'),
+    dni: z.string().regex(/^\d{8}$/, 'Debe tener 8 dígitos numéricos'),
+    telefono: z.string().regex(/^9\d{8}$/, 'Debe empezar con 9 y tener 9 dígitos'),
+    email: z.string().email('Email inválido'),
+    contrasena: z.string().min(8, 'Mínimo 8 caracteres'),
+    confirmarContrasena: z.string().min(1, 'Confirmar contraseña requerida'),
+}).refine((data) => data.contrasena === data.confirmarContrasena, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmarContrasena'],
+});
 
 type FieldName = keyof FormState;
 
 export default function RegisterForm() {
     const [form, setForm] = useState<FormState>(INITIAL_STATE);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     function handleChange(field: FieldName, value: string) {
         setForm((prev) => ({ ...prev, [field]: { value, touched: true } }));
@@ -49,19 +57,73 @@ export default function RegisterForm() {
         setForm((prev) => ({ ...prev, [field]: { ...prev[field], touched: true } }));
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         const allTouched = (Object.keys(form) as Array<keyof FormState>).reduce((acc, key) => {
             return { ...acc, [key]: { ...form[key], touched: true } };
         }, {} as FormState);
         setForm(allTouched);
-        setSubmitted(true);
+        setError(null);
+
+        const currentValues = {
+            nombres: form.nombres.value,
+            apellidos: form.apellidos.value,
+            dni: form.dni.value,
+            telefono: form.telefono.value,
+            email: form.email.value,
+            contrasena: form.contrasena.value,
+            confirmarContrasena: form.confirmarContrasena.value,
+        };
+
+        const validation = registerSchema.safeParse(currentValues);
+        if (!validation.success) {
+            return;
+        }
+
+        const formValues: RegisterRequestDTO = {
+            "firstName": form.nombres.value,
+            "lastName": form.apellidos.value,
+            "dni": form.dni.value,
+            "email": form.email.value,
+            "password": form.contrasena.value,
+            "phoneNumber": form.telefono.value
+        };
+
+        try {
+            const response = await axios.post("/auth/register", formValues);
+            console.log(response);
+            setSubmitted(true);
+            setForm(INITIAL_STATE);
+        } catch (err: any) {
+            console.error(err);
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("Ocurrió un error al registrar el usuario. Por favor, inténtelo de nuevo.");
+            }
+        }
     }
 
-    const dniValid = form.dni.touched && isDniValid(form.dni.value);
-    const dniError = form.dni.touched && !isDniValid(form.dni.value) && form.dni.value !== '';
-    const passwordError = form.contrasena.touched && !isPasswordValid(form.contrasena.value) && form.contrasena.value !== '';
+    const validationResult = registerSchema.safeParse({
+        nombres: form.nombres.value,
+        apellidos: form.apellidos.value,
+        dni: form.dni.value,
+        telefono: form.telefono.value,
+        email: form.email.value,
+        contrasena: form.contrasena.value,
+        confirmarContrasena: form.confirmarContrasena.value,
+    });
+    
+    const fieldErrors = validationResult.success ? {} : validationResult.error.flatten().fieldErrors;
+    
+    const hasError = (field: FieldName) => form[field].touched && fieldErrors[field] !== undefined;
+    const isValid = (field: FieldName) => form[field].touched && fieldErrors[field] === undefined && form[field].value !== '';
+    const getErrorMessage = (field: FieldName) => hasError(field) ? fieldErrors[field]?.[0] : null;
 
+    const dniValid = isValid('dni');
+    const dniError = hasError('dni') && form.dni.value !== '';
+    const passwordError = hasError('contrasena') && form.contrasena.value !== '';
+    const phoneError = hasError('telefono') && form.telefono.value !== '';
     const labelClass = 'text-xs font-normal leading-4 tracking-[0.6px] text-[#424752]';
     const baseInputClass =
         'w-full h-[38px] rounded-lg border bg-[#f8f9fa] px-3 text-sm font-normal leading-5 text-[#191c1d] outline-none transition-colors focus:ring-1 focus:ring-[#003f87] focus:border-[#003f87]';
@@ -73,6 +135,17 @@ export default function RegisterForm() {
                     <p className="text-sm text-[#006e25] font-medium">
                         Formulario enviado correctamente.
                     </p>
+                </div>
+            )}
+
+            {error && (
+                <div className="mb-5 rounded-lg bg-[#ffdad6]/20 border border-[#ba1a1a] px-4 py-3">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-[#ba1a1a] shrink-0" />
+                        <p className="text-sm text-[#ba1a1a] font-medium">
+                            {error}
+                        </p>
+                    </div>
                 </div>
             )}
 
@@ -143,20 +216,41 @@ export default function RegisterForm() {
                                 />
                             )}
                         </div>
+                        {dniError && (
+                            <p className="text-xs font-medium leading-3 text-[#ba1a1a]" style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}>
+                                {getErrorMessage('dni')}
+                            </p>
+                        )}
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="telefono" className={labelClass} style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}>
                             Teléfono
                         </label>
-                        <input
-                            id="telefono"
-                            type="tel"
-                            value={form.telefono.value}
-                            onChange={(e) => handleChange('telefono', e.target.value)}
-                            onBlur={() => handleBlur('telefono')}
-                            className={`${baseInputClass} border-[#727784]`}
-                            style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
-                        />
+                        <div className="relative">
+                            <input
+                                id="telefono"
+                                type="tel"
+                                value={form.telefono.value}
+                                onChange={(e) => handleChange('telefono', e.target.value)}
+                                onBlur={() => handleBlur('telefono')}
+                                className={`${baseInputClass} ${phoneError
+                                        ? 'border-[#ba1a1a] focus:ring-[#ba1a1a] focus:border-[#ba1a1a] pr-10'
+                                        : 'border-[#727784]'
+                                    }`}
+                                style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
+                            />
+                            {phoneError && (
+                                <AlertCircle
+                                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#ba1a1a]"
+                                    strokeWidth={2}
+                                />
+                            )}
+                        </div>
+                        {phoneError && (
+                            <p className="text-xs font-medium leading-3 text-[#ba1a1a]" style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}>
+                                {getErrorMessage('telefono')}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -207,7 +301,7 @@ export default function RegisterForm() {
                                 className="text-xs font-medium leading-3 text-[#ba1a1a]"
                                 style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
                             >
-                                Mínimo 8 caracteres.
+                                {getErrorMessage('contrasena')}
                             </p>
                         )}
                     </div>
