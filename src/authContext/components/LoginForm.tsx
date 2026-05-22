@@ -1,16 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LogIn } from 'lucide-react';
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import type { LoginRequestDTO, TokenDTO, UserDTO } from '../types/dtos';
+import apiClient from '../../shared/apiClient';
 
 export default function LoginForm() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        if (token && user) {
+            try {
+                const parsedUser = JSON.parse(user);
+                if (parsedUser.role === 'PATIENT') {
+                    navigate('/patient/dashboard');
+                }
+            } catch (e) {
+                // If there's an error parsing the user, we just ignore and stay on login
+            }
+        }
+    }, [navigate]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock submit
-        console.log({ email, password, remember });
+
+        try {
+            const loginRequestDTO: LoginRequestDTO = {
+                email,
+                password,
+            };
+
+            const response = await apiClient.post<TokenDTO | string>(
+                '/auth/login',
+                loginRequestDTO
+            );
+
+            const token =
+                typeof response.data === 'string'
+                    ? response.data
+                    : response.data?.token;
+
+            if (!token) {
+                throw new Error('No token was received');
+            }
+
+            localStorage.setItem('token', token);
+
+            const user = await apiClient.get<UserDTO>('/users/me', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            localStorage.setItem('user', JSON.stringify(user.data));
+            console.log(user.data);
+
+            if (user.data.role === 'PATIENT') {
+                navigate('/patient/dashboard');
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (

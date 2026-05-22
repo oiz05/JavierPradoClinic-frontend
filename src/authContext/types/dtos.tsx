@@ -15,3 +15,16 @@ export interface LoginRequestDTO {
 export interface TokenDTO {
     token: string;
 }
+
+export interface UserDTO {
+    id: number;
+    firstName: string;
+    lastName: string;
+    dni: number;
+    email: string;
+    phoneNumber: string;
+    profilePhoto: string | null;
+    role: string;
+    medicalSpecialty?: string | null;
+    cmp?: string | null;
+}

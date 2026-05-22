@@ -1,8 +1,8 @@
 import { ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, Outlet } from 'react-router';
 
 interface AuthLayoutProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             {/* Right panel */}
             <section className="flex min-h-screen bg-[#f8f9fa]">
                 <div className="mx-auto flex w-full max-w-[448px] flex-col px-8 py-[72px] sm:px-12 md:px-16 lg:px-12 xl:px-0">
-                    {children}
+                    {children || <Outlet />}
                 </div>
             </section>
         </main>

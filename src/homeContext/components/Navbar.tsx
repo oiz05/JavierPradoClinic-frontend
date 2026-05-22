@@ -1,6 +1,6 @@
 import { Shield } from "lucide-react";
 import { Button } from "../../ui/button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const navigationItems = [
   { label: "Inicio", active: true },
@@ -10,6 +10,24 @@ const navigationItems = [
 ];
 
 export function Navbar() {
+  const navigate = useNavigate();
+
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.role === 'PATIENT') {
+          navigate('/patient/dashboard');
+          return;
+        }
+      } catch (err) {}
+    }
+    navigate('/auth/login');
+  };
+
   return (
     <header className="relative z-20 w-full border-b border-[#c2c6d44c] bg-[#f8f9fae6] backdrop-blur-[6px]">
       <div className="mx-auto flex h-[72px] w-full max-w-screen-xl items-center justify-between gap-6 px-6">
@@ -44,13 +62,12 @@ export function Navbar() {
           <Button
             type="button"
             variant="ghost"
+            onClick={handleLoginClick}
             className="h-auto rounded-lg px-4 py-2 text-[#003f87] hover:bg-[#003f87]/5 hover:text-[#003f87]"
           >
-            <Link to="/auth/login">
-              <span className="text-xs font-normal leading-4 tracking-[0.60px]" style={{ fontFamily: "'Inter', Helvetica" }}>
-                Iniciar sesión
-              </span>
-            </Link>
+            <span className="text-xs font-normal leading-4 tracking-[0.60px]" style={{ fontFamily: "'Inter', Helvetica" }}>
+              Iniciar sesión
+            </span>
           </Button>
           <Button
             type="button"

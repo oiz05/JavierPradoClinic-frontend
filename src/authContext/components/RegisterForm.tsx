@@ -130,6 +130,21 @@ export default function RegisterForm() {
 
     return (
         <>
+            <header className="mb-7 flex flex-col gap-1">
+                <h2
+                    className="text-2xl font-semibold leading-7 tracking-[0] text-[#191c1d]"
+                    style={{ fontFamily: 'Manrope, Helvetica, sans-serif' }}
+                >
+                    Registro de Paciente
+                </h2>
+                <p
+                    className="text-sm font-normal leading-5 text-[#424752]"
+                    style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}
+                >
+                    Complete los datos para crear su expediente.
+                </p>
+            </header>
+
             {submitted && (
                 <div className="mb-5 rounded-lg bg-[#e8f5e9] border border-[#006e25] px-4 py-3">
                     <p className="text-sm text-[#006e25] font-medium">
