@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {  
         '/api': {
-          target: env.VITE_API_TARGET,
+          target: env.VITE_API_TARGET || "https://cj-196a962e499340109b9631b8eef0bb37.ecs.sa-east-1.on.aws",
           changeOrigin: true,
         },
       },
