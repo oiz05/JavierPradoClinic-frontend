@@ -35,7 +35,7 @@ export default function LoginForm() {
             };
 
             const response = await apiClient.post<TokenDTO | string>(
-                '/api/auth/login',
+                '/auth/login',
                 loginRequestDTO
             );
 
