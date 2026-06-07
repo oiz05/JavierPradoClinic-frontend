@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronDown, MapPin, Calendar as CalendarIcon, Clock, CreditCard, Stethoscope, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { BookingModal, type BookingStatus } from '../components/BookingModal';

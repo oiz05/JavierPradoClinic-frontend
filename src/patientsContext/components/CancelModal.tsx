@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { AlertCircle, CalendarX2 } from 'lucide-react';
+import { CalendarX2 } from 'lucide-react';
 
 interface CancelModalProps {
     isOpen: boolean;

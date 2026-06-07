@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Filter, Calendar as CalendarIcon, Clock, Stethoscope, HeartPulse, Activity, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { CancelModal } from './CancelModal';
 import { DecisionModal } from './DecisionModal';

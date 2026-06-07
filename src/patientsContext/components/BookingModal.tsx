@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, AlertCircle, Calendar, Clock, MapPin } from 'lucide-react';
+import { Check, AlertCircle, Calendar } from 'lucide-react';
 
 export type BookingStatus = 'success' | 'error' | null;
 

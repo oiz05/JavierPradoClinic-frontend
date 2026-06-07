@@ -1,6 +1,6 @@
 import { Shield } from "lucide-react";
 import { Button } from "../../ui/button";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 const navigationItems = [
   { label: "Inicio", active: true },

@@ -6,7 +6,6 @@ export function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
     const isDashboard = location.pathname === '/patient/dashboard';
-    const isAgendar = location.pathname === '/patient/appointment';
     const [isOpen, setIsOpen] = useState(false);
 
     const handleLogout = () => {
