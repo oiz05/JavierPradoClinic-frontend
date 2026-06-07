@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { LogIn } from 'lucide-react';
 import { Link, useNavigate } from "react-router";
 import type { LoginRequestDTO, TokenDTO, UserDTO } from '../types/dtos';
-import apiClient from '../../shared/apiClient';
+import apiClient from '../../shared/apiClient.ts';
 
 export default function LoginForm() {
     const navigate = useNavigate();
