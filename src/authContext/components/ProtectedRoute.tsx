@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router';
 import type { UserDTO } from '../types/dtos';
+import apiClient from '../../shared/apiClient';
 
 interface ProtectedRouteProps {
     allowedRoles: string[];
@@ -7,22 +9,52 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    const [status, setStatus] = useState<'checking' | 'authorized' | 'unauthorized'>(token ? 'checking' : 'unauthorized');
 
-    if (!token || !userStr) {
-        return <Navigate to="/auth/login" replace />;
+    useEffect(() => {
+        if (!token) {
+            setStatus('unauthorized');
+            return;
+        }
+
+        let isMounted = true;
+
+        apiClient.get<UserDTO>('/users/me')
+            .then((response) => {
+                if (!isMounted) {
+                    return;
+                }
+
+                if (response.data.emailVerified && allowedRoles.includes(response.data.role)) {
+                    localStorage.setItem('user', JSON.stringify(response.data));
+                    setStatus('authorized');
+                    return;
+                }
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setStatus('unauthorized');
+            })
+            .catch(() => {
+                if (!isMounted) {
+                    return;
+                }
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setStatus('unauthorized');
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [allowedRoles, token]);
+
+    if (status === 'checking') {
+        return null;
     }
 
-    try {
-        const user: UserDTO = JSON.parse(userStr);
-        if (!allowedRoles.includes(user.role)) {
-            // Redirect to home or unauthorized page if they don't have the required role
-            return <Navigate to="/" replace />;
-        }
-    } catch (e) {
-        // If there's an error parsing the user from localStorage, clear it and redirect to login
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+    if (status === 'unauthorized') {
         return <Navigate to="/auth/login" replace />;
     }
 

@@ -7,6 +7,19 @@ export interface RegisterRequestDTO {
     phoneNumber: string;
 }
 
+export interface VerifyEmailRequestDTO {
+    email: string;
+    code: string;
+}
+
+export interface ResendVerificationRequestDTO {
+    email: string;
+}
+
+export interface MessageResponseDTO {
+    message: string;
+}
+
 export interface LoginRequestDTO {
     email: string;
     password: string;
@@ -22,6 +35,7 @@ export interface UserDTO {
     lastName: string;
     dni: number;
     email: string;
+    emailVerified: boolean;
     phoneNumber: string;
     profilePhoto: string | null;
     role: string;

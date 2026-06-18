@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogIn } from 'lucide-react';
+import { AlertCircle, LogIn } from 'lucide-react';
 import { Link, useNavigate } from "react-router";
 import type { LoginRequestDTO, TokenDTO, UserDTO } from '../types/dtos';
 import apiClient from '../../shared/apiClient.ts';
@@ -9,24 +9,44 @@ export default function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-        if (token && user) {
-            try {
-                const parsedUser = JSON.parse(user);
-                if (parsedUser.role === 'PATIENT') {
-                    navigate('/patient/dashboard');
-                }
-            } catch (e) {
-                // If there's an error parsing the user, we just ignore and stay on login
-            }
+        if (!token) {
+            return;
         }
+
+        let isMounted = true;
+
+        apiClient.get<UserDTO>('/users/me')
+            .then((response) => {
+                if (!isMounted) {
+                    return;
+                }
+
+                if (response.data.emailVerified && response.data.role === 'PATIENT') {
+                    localStorage.setItem('user', JSON.stringify(response.data));
+                    navigate('/patient/dashboard');
+                    return;
+                }
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            })
+            .catch(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            });
+
+        return () => {
+            isMounted = false;
+        };
     }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
 
         try {
             const loginRequestDTO: LoginRequestDTO = {
@@ -57,11 +77,23 @@ export default function LoginForm() {
             localStorage.setItem('user', JSON.stringify(user.data));
             console.log(user.data);
 
-            if (user.data.role === 'PATIENT') {
+            if (user.data.emailVerified && user.data.role === 'PATIENT') {
                 navigate('/patient/dashboard');
+                return;
             }
-        } catch (error) {
-            console.error(error);
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setError('Debes verificar tu correo antes de iniciar sesion.');
+        } catch (err: any) {
+            console.error(err);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('No se pudo iniciar sesion. Revisa tus credenciales.');
+            }
         }
     };
 
@@ -92,6 +124,15 @@ export default function LoginForm() {
                         Iniciar Sesión
                     </h2>
                 </div>
+
+                {error && (
+                    <div className="mt-6 rounded-lg border border-[#ba1a1a] bg-[#ffdad6]/20 px-4 py-3">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 shrink-0 text-[#ba1a1a]" />
+                            <p className="text-sm font-medium text-[#ba1a1a]">{error}</p>
+                        </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
                     {/* Email */}

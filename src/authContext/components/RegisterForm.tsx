@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import axios from '../../shared/apiClient';
 import { z } from 'zod';
 import type { RegisterRequestDTO } from '../types/dtos';
@@ -44,13 +44,25 @@ const registerSchema = z.object({
 
 type FieldName = keyof FormState;
 
+function sanitizeFieldValue(field: FieldName, value: string) {
+    if (field === 'dni') {
+        return value.replace(/\D/g, '').slice(0, 8);
+    }
+
+    if (field === 'telefono') {
+        return value.replace(/\D/g, '').slice(0, 9);
+    }
+
+    return value;
+}
+
 export default function RegisterForm() {
+    const navigate = useNavigate();
     const [form, setForm] = useState<FormState>(INITIAL_STATE);
-    const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     function handleChange(field: FieldName, value: string) {
-        setForm((prev) => ({ ...prev, [field]: { value, touched: true } }));
+        setForm((prev) => ({ ...prev, [field]: { value: sanitizeFieldValue(field, value), touched: true } }));
     }
 
     function handleBlur(field: FieldName) {
@@ -90,10 +102,8 @@ export default function RegisterForm() {
         };
 
         try {
-            const response = await axios.post("/auth/register", formValues);
-            console.log(response);
-            setSubmitted(true);
-            setForm(INITIAL_STATE);
+            await axios.post("/auth/register", formValues);
+            navigate('/auth/verify-email', { state: { email: form.email.value } });
         } catch (err: any) {
             console.error(err);
             if (err.response?.data?.message) {
@@ -145,14 +155,6 @@ export default function RegisterForm() {
                 </p>
             </header>
 
-            {submitted && (
-                <div className="mb-5 rounded-lg bg-[#e8f5e9] border border-[#006e25] px-4 py-3">
-                    <p className="text-sm text-[#006e25] font-medium">
-                        Formulario enviado correctamente.
-                    </p>
-                </div>
-            )}
-
             {error && (
                 <div className="mb-5 rounded-lg bg-[#ffdad6]/20 border border-[#ba1a1a] px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -171,10 +173,11 @@ export default function RegisterForm() {
                         <label htmlFor="nombres" className={labelClass} style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}>
                             Nombres
                         </label>
-                        <input
-                            id="nombres"
-                            type="text"
-                            value={form.nombres.value}
+                            <input
+                                id="nombres"
+                                type="text"
+                                autoComplete="given-name"
+                                value={form.nombres.value}
                             onChange={(e) => handleChange('nombres', e.target.value)}
                             onBlur={() => handleBlur('nombres')}
                             className={`${baseInputClass} border-[#727784]`}
@@ -185,10 +188,11 @@ export default function RegisterForm() {
                         <label htmlFor="apellidos" className={labelClass} style={{ fontFamily: 'Inter, Helvetica, sans-serif' }}>
                             Apellidos
                         </label>
-                        <input
-                            id="apellidos"
-                            type="text"
-                            value={form.apellidos.value}
+                            <input
+                                id="apellidos"
+                                type="text"
+                                autoComplete="family-name"
+                                value={form.apellidos.value}
                             onChange={(e) => handleChange('apellidos', e.target.value)}
                             onBlur={() => handleBlur('apellidos')}
                             className={`${baseInputClass} border-[#727784]`}
@@ -207,6 +211,10 @@ export default function RegisterForm() {
                             <input
                                 id="dni"
                                 type="text"
+                                inputMode="numeric"
+                                maxLength={8}
+                                pattern="\d{8}"
+                                autoComplete="off"
                                 value={form.dni.value}
                                 onChange={(e) => handleChange('dni', e.target.value)}
                                 onBlur={() => handleBlur('dni')}
@@ -245,6 +253,10 @@ export default function RegisterForm() {
                             <input
                                 id="telefono"
                                 type="tel"
+                                inputMode="numeric"
+                                maxLength={9}
+                                pattern="9\d{8}"
+                                autoComplete="tel"
                                 value={form.telefono.value}
                                 onChange={(e) => handleChange('telefono', e.target.value)}
                                 onBlur={() => handleBlur('telefono')}
@@ -277,6 +289,7 @@ export default function RegisterForm() {
                     <input
                         id="email"
                         type="email"
+                        autoComplete="email"
                         value={form.email.value}
                         onChange={(e) => handleChange('email', e.target.value)}
                         onBlur={() => handleBlur('email')}
@@ -295,6 +308,7 @@ export default function RegisterForm() {
                             <input
                                 id="contrasena"
                                 type="password"
+                                autoComplete="new-password"
                                 value={form.contrasena.value}
                                 onChange={(e) => handleChange('contrasena', e.target.value)}
                                 onBlur={() => handleBlur('contrasena')}
@@ -327,6 +341,7 @@ export default function RegisterForm() {
                         <input
                             id="confirmarContrasena"
                             type="password"
+                            autoComplete="new-password"
                             value={form.confirmarContrasena.value}
                             onChange={(e) => handleChange('confirmarContrasena', e.target.value)}
                             onBlur={() => handleBlur('confirmarContrasena')}
