@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, LogIn } from 'lucide-react';
 import { Link, useNavigate } from "react-router";
-import type { LoginRequestDTO, TokenDTO, UserDTO } from '../types/dtos';
+import type { AuthErrorResponseDTO, LoginRequestDTO, TokenDTO, UserDTO } from '../types/dtos';
 import apiClient from '../../shared/apiClient.ts';
 
 export default function LoginForm() {
@@ -89,6 +89,18 @@ export default function LoginForm() {
             console.error(err);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+
+            const authError = err.response?.data as AuthErrorResponseDTO | undefined;
+            if (authError?.code === 'EMAIL_NOT_VERIFIED') {
+                navigate('/auth/verify-email', {
+                    state: {
+                        email: authError.email || email,
+                        message: 'Tu correo aun no esta verificado. Ingresa el codigo o solicita uno nuevo.',
+                    },
+                });
+                return;
+            }
+
             if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else {

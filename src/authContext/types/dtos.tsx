@@ -20,6 +20,12 @@ export interface MessageResponseDTO {
     message: string;
 }
 
+export interface AuthErrorResponseDTO {
+    code: string;
+    message: string;
+    email?: string;
+}
+
 export interface LoginRequestDTO {
     email: string;
     password: string;
@@ -27,6 +33,7 @@ export interface LoginRequestDTO {
 
 export interface TokenDTO {
     token: string;
+    message?: string;
 }
 
 export interface UserDTO {

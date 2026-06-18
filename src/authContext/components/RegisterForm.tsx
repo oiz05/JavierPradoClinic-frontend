@@ -50,7 +50,8 @@ function sanitizeFieldValue(field: FieldName, value: string) {
     }
 
     if (field === 'telefono') {
-        return value.replace(/\D/g, '').slice(0, 9);
+        const digits = value.replace(/\D/g, '').slice(0, 9);
+        return digits === '' || digits.startsWith('9') ? digits : '';
     }
 
     return value;

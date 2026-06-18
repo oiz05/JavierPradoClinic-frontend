@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import axios from '../../shared/apiClient';
 import type {
     MessageResponseDTO,
     ResendVerificationRequestDTO,
+    TokenDTO,
+    UserDTO,
     VerifyEmailRequestDTO,
 } from '../types/dtos';
 
 interface VerifyEmailLocationState {
     email?: string;
+    message?: string;
 }
 
 export default function VerifyEmailForm() {
@@ -19,21 +22,12 @@ export default function VerifyEmailForm() {
     const [email, setEmail] = useState(locationState?.email ?? '');
     const [code, setCode] = useState('');
     const [message, setMessage] = useState<string | null>(
-        locationState?.email ? 'Te enviamos un codigo de verificacion. Revisa tu correo.' : null
+        locationState?.message ?? (locationState?.email ? 'Te enviamos un codigo de verificacion. Revisa tu correo.' : null)
     );
     const [error, setError] = useState<string | null>(null);
     const [verified, setVerified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
-
-    useEffect(() => {
-        if (!verified) {
-            return;
-        }
-
-        const timeoutId = window.setTimeout(() => navigate('/auth/login'), 1800);
-        return () => window.clearTimeout(timeoutId);
-    }, [navigate, verified]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -49,10 +43,28 @@ export default function VerifyEmailForm() {
 
         try {
             setLoading(true);
-            const response = await axios.post<MessageResponseDTO>('/auth/verify-email', payload);
+            const response = await axios.post<TokenDTO>('/auth/verify-email', payload);
+            const token = response.data.token;
+
+            if (!token) {
+                throw new Error('No token was received');
+            }
+
+            localStorage.setItem('token', token);
+            const user = await axios.get<UserDTO>('/users/me');
+            localStorage.setItem('user', JSON.stringify(user.data));
+
             setVerified(true);
             setMessage(response.data.message || 'Correo verificado correctamente.');
+            if (user.data.role === 'PATIENT') {
+                navigate('/patient/dashboard');
+                return;
+            }
+
+            navigate('/');
         } catch (err: any) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else {
@@ -80,7 +92,6 @@ export default function VerifyEmailForm() {
             setMessage(response.data.message || 'Si el correo esta pendiente, recibiras un nuevo codigo.');
         } catch (err: any) {
             if (err.response?.data?.message) {
-                console.log(err.response.data);
                 setError(err.response.data.message);
             } else {
                 setError('No se pudo reenviar el codigo. Intentalo nuevamente.');
