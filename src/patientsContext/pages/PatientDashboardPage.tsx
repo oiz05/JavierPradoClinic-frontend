@@ -1,23 +1,41 @@
 import { useEffect, useState } from 'react';
-import { SiguienteCita } from '../components/SiguienteCita';
-import { CitasProximas } from '../components/CitasProximas';
+import { NextAppointment } from '../components/NextAppointment';
+import { NextAppointments } from '../components/NextAppointments';
 import type { UserDTO } from '../../authContext/types/dtos';
+import type { Appointment } from '../types/dtos';
+import { getMyAppointments } from '../api/patientApi';
 
 export default function PatientDashboardPage() {
-    const [firstName, setFirstName] = useState('');
+    const [firstName] = useState(() => {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return '';
+        try {
+            const user = JSON.parse(userStr) as UserDTO;
+            return user.firstName || '';
+        } catch (e) {
+            console.error(e);
+            return '';
+        }
+    });
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    async function loadAppointments() {
+        try {
+            const data = await getMyAppointments();
+            setAppointments(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr) as UserDTO;
-                if (user.firstName) {
-                    setFirstName(user.firstName);
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
+        const timeoutId = window.setTimeout(() => {
+            void loadAppointments();
+        }, 0);
+        return () => window.clearTimeout(timeoutId);
     }, []);
 
     return (
@@ -30,8 +48,8 @@ export default function PatientDashboardPage() {
             </div>
 
             <div className="flex flex-col gap-8">
-                <SiguienteCita />
-                <CitasProximas />
+                <NextAppointment appointments={appointments} loading={loading} onRefresh={loadAppointments} />
+                <NextAppointments appointments={appointments} loading={loading} onRefresh={loadAppointments} />
             </div>
         </div>
     );
